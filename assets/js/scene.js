@@ -1,6 +1,8 @@
 function setup() {
   pixelDensity(1);
-  createCanvas(windowWidth, windowHeight);
+  var myCanvas = createCanvas(windowWidth, windowHeight);
+  myCanvas.style("display", "block");
+  myCanvas.parent("sceneHolder");
   frameRate(30);
 
   noLoop();
@@ -10,6 +12,11 @@ function setup() {
 
 function draw() {
 
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  drawMountainBackground();
 }
 
 function drawMountainBackground() {
