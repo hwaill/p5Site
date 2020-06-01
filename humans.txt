@@ -1,0 +1,11 @@
+# humanstxt.org/
+# The humans responsible & technology colophon
+
+# TEAM
+
+    <Henry Waill> - <Developer and Designer> - <hewa2807@colorado.edu>
+
+# TECHNOLOGY COLOPHON
+
+    CSS3, HTML5, Node, Sass, Gulp
+    Apache Server Configs, jQuery, Modernizr, Normalize.css
