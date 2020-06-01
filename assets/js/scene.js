@@ -14,15 +14,17 @@ function draw() {
 
 function drawMountainBackground() {
   var colors = [
-    color('#fa6e8d'),
-    color('#e36b87'),
-    color('#cd6881'),
-    color('#b7657b'),
-    color('#a16175'),
-    color('#8a5d6f'),
-    color('#745869'),
-    color('#5e5363'),
-    color('#464e5e'),
+    color('#ae0d93'),
+    color('#a6198f'),
+    color('#9e218a'),
+    color('#962786'),
+    color('#8d2d81'),
+    color('#84317c'),
+    color('#793677'),
+    color('#6e3a71'),
+    color('#623e6b'),
+    color('#534165'),
+    color('#42455f'),
     color('#2a4858')
   ];
 
@@ -33,6 +35,33 @@ function drawMountainBackground() {
     }
   }
   updatePixels();
+
+
+  var startingHeight;
+  var thisHeight;
+  for (var mountainLevel = 10; mountainLevel > 0; mountainLevel--) {
+    var startingHeight = (Math.log10(mountainLevel) + 1) * 50;
+    loadPixels();
+    for (var imageColumn = 0; imageColumn < windowWidth; imageColumn++) {
+      thisHeight = int((windowHeight / 2) - (startingHeight + (noise(mountainLevel, imageColumn * mountainLevel * 0.01) - 0.5) * 20));
+      colorPixelsBelow(imageColumn, thisHeight, colors[11 - mountainLevel]);
+    }
+    updatePixels();
+  }
+
+  loadPixels();
+  for (var col = 0; col < windowWidth; col++) {
+    colorPixelsBelow(col, windowHeight / 2, colors[11]);
+  }
+  updatePixels();
+}
+
+function colorPixelsBelow(x, y, color) {
+  for (var pixel = y; pixel < windowHeight; pixel++) {
+    if (pixel >= 0) {
+      colorPixel(x, pixel, color);
+    }
+  }
 }
 
 function colorPixel(x, y, color) {
