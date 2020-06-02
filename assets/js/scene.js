@@ -10,28 +10,97 @@ class Leaf {
     this.maxVelocity = 2;
 
     this.diameter = diameter;
-    this.floorY = floorLevel + (random(20) - 10);
+    this.floorY = floorLevel + random(-2, 2);
 
     this.isOnFloor = false;
+    this.isLocked = true;
   }
 
-  show() {
+  show(sceneTime) {
     if (!this.isOnFloor) {
-      this.position.add(this.velocity.add(this.acceleration).limit(this.maxVelocity));
-      if (this.position.y > this.floorY) {
-        this.isOnFloor = true;
+      if (this.isLocked) {
+        if (random(50) < 0.45 * sceneTime) {
+          this.isLocked = false;
+        }
+      } else {
+        this.position.add(this.velocity.add(this.acceleration).limit(this.maxVelocity));
+        if (this.position.y > this.floorY) {
+          this.isOnFloor = true;
+        }
       }
     }
-    image(leafImage, this.position.x - 20, this.position.y - 20, this.diameter, this.diameter);
+    image(leafImage, this.position.x - this.diameter / 2, this.position.y - this.diameter / 2, this.diameter, this.diameter);
+  }
+}
+
+class Tree {
+  constructor(startingPoint, branchLevel, levelsSinceLastBranch, angle) {
+    this.startingLength = 20;
+    this.children = [];
+    this.hasGrown = false;
+    this.branchLevel = branchLevel;
+    this.levelsSinceLastBranch = levelsSinceLastBranch;
+    this.myLength = random(0.8, 1.1) * this.startingLength * pow(0.9, this.branchLevel);
+    this.myWidth = this.startingLength * pow(0.85, this.branchLevel) / 4;
+    this.branchVector = p5.Vector.fromAngle(angle).mult(this.myLength);
+    this.startingPoint = startingPoint;
+    this.endingPoint = p5.Vector.add(this.startingPoint, this.branchVector);
+  }
+
+  grow() {
+    if (!this.hasGrown) {
+      if (random(1) < 0.4 + 0.2 * this.levelsSinceLastBranch) {
+        this.children.push(new Tree(this.endingPoint, this.branchLevel + 1, 0, -.3 + random(-0.1, 0.1) + this.branchVector.heading()));
+        this.children.push(new Tree(this.endingPoint, this.branchLevel + 1, 0, .3 + random(-0.1, 0.1) + this.branchVector.heading()));
+      } else {
+        this.children.push(new Tree(this.endingPoint, this.branchLevel, this.levelsSinceLastBranch + 1, random(-0.1, 0.1) + this.branchVector.heading()));
+        this.children[0].grow();
+      }
+      this.hasGrown = true;
+    } else {
+      for (var i = 0; i < this.children.length; i++) {
+        this.children[i].grow();
+      }
+    }
+  }
+
+  addLeaves(leafArray) {
+    if (!this.hasGrown) {
+      for (var i = 0; i < 4; i++) {
+        leafArray.push(new Leaf(this.endingPoint.copy(), random(3, 6)));
+      }
+    } else {
+      for (var i = 0; i < this.children.length; i++) {
+        this.children[i].addLeaves(leafArray);
+      }
+    }
+  }
+
+  show(image) {
+    image.strokeWeight(this.myWidth);
+    image.line(this.startingPoint.x, this.startingPoint.y, this.endingPoint.x, this.endingPoint.y);
+    if (this.hasGrown) {
+      for (var i = 0; i < this.children.length; i++) {
+        this.children[i].show(image);
+      }
+    }
   }
 }
 
 var mountainImage;
-var myLeaf;
+var treeImage;
+var leafArray;
+var myTree;
+
+var sceneTime = 0;
+
+var currWidth, currHeight;
 
 function setup() {
   pixelDensity(1);
   var myCanvas = createCanvas(windowWidth, windowHeight);
+  currWidth = windowWidth;
+  currHeight = windowHeight;
   myCanvas.style("display", "block");
   myCanvas.parent("sceneHolder");
   frameRate(30);
@@ -41,17 +110,44 @@ function setup() {
   createLeafImage();
   createMountainImage();
 
-  myLeaf = new Leaf(createVector(windowWidth / 2, windowHeight / 3), 7);
+  leafArray = [];
+
+  myTree = new Tree(createVector(0.7 * windowWidth, 0.55 * windowHeight), 0, 0, -PI / 2 + 0.1);
+  treeImage = createGraphics(windowWidth, windowHeight);
+  treeImage.stroke(color(0, 0, 0));
+  for (var i = 0; i < 9; i++) {
+    myTree.grow();
+  }
+  myTree.addLeaves(leafArray);
+
+  myTree.show(treeImage);
+
+
 }
 
 function draw() {
   image(mountainImage, 0, 0);
-  myLeaf.show();
+  image(treeImage, windowWidth - treeImage.width, windowHeight - treeImage.height, treeImage.width, treeImage.height);
+  for (var i = 0; i < leafArray.length; i++) {
+    leafArray[i].show(sceneTime);
+  }
+
+  sceneTime += 2e-3;
 }
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   createMountainImage();
+
+  var widthDiff = windowWidth - currWidth;
+  var heightDiff = windowHeight - currHeight;
+  for (var i = 0; i < leafArray.length; i++) {
+    leafArray[i].position.x += widthDiff;
+    leafArray[i].position.y += heightDiff;
+  }
+
+  currWidth = windowWidth;
+  currHeight = windowHeight;
 }
 
 function createLeafImage() {
@@ -60,7 +156,7 @@ function createLeafImage() {
   for (var x = 0; x < 40; x++) {
     for (var y = 0; y < 40; y++) {
       if (sqrt(pow(20 - x, 2) + pow(20 - y, 2)) <= 20) {
-        colorPixel(x, y, color(255, 255, 255), leafImage);
+        colorPixel(x, y, color('#e1873e'), leafImage);
       }
     }
   }
