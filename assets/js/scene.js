@@ -1,4 +1,5 @@
 var floorLevel;
+var leafImage;
 
 class Leaf {
   constructor(startingPosition, diameter) {
@@ -17,13 +18,11 @@ class Leaf {
   show() {
     if (!this.isOnFloor) {
       this.position.add(this.velocity.add(this.acceleration).limit(this.maxVelocity));
-      noStroke();
-      fill(color(255, 255, 255));
       if (this.position.y > this.floorY) {
         this.isOnFloor = true;
       }
     }
-    circle(this.position.x, this.position.y, this.diameter);
+    image(leafImage, this.position.x - 20, this.position.y - 20, this.diameter, this.diameter);
   }
 }
 
@@ -39,9 +38,10 @@ function setup() {
 
   floorLevel = windowHeight * 0.55;
 
+  createLeafImage();
   createMountainImage();
 
-  myLeaf = new Leaf(createVector(windowWidth / 2, windowHeight / 3), 10);
+  myLeaf = new Leaf(createVector(windowWidth / 2, windowHeight / 3), 7);
 }
 
 function draw() {
@@ -52,6 +52,19 @@ function draw() {
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   createMountainImage();
+}
+
+function createLeafImage() {
+  leafImage = createImage(40, 40);
+  leafImage.loadPixels();
+  for (var x = 0; x < 40; x++) {
+    for (var y = 0; y < 40; y++) {
+      if (sqrt(pow(20 - x, 2) + pow(20 - y, 2)) <= 20) {
+        colorPixel(x, y, color(255, 255, 255), leafImage);
+      }
+    }
+  }
+  leafImage.updatePixels();
 }
 
 function createMountainImage() {
@@ -75,7 +88,7 @@ function createMountainImage() {
   mountainImage.loadPixels();
   for (var y = 0; y < windowHeight; y++) {
     for (var x = 0; x < windowWidth; x++) {
-      colorPixel(x, y, colors[0]);
+      colorPixel(x, y, colors[0], mountainImage);
     }
   }
   mountainImage.updatePixels();
@@ -88,30 +101,30 @@ function createMountainImage() {
     mountainImage.loadPixels();
     for (var imageColumn = 0; imageColumn < windowWidth; imageColumn++) {
       thisHeight = int((windowHeight / 2) - (startingHeight + (noise(mountainLevel, imageColumn * mountainLevel * 0.01) - 0.5) * 20));
-      colorPixelsBelow(imageColumn, thisHeight, colors[11 - mountainLevel]);
+      colorPixelsBelow(imageColumn, thisHeight, colors[11 - mountainLevel], mountainImage);
     }
     mountainImage.updatePixels();
   }
 
   mountainImage.loadPixels();
   for (var col = 0; col < windowWidth; col++) {
-    colorPixelsBelow(col, windowHeight / 2, colors[11]);
+    colorPixelsBelow(col, windowHeight / 2, colors[11], mountainImage);
   }
   mountainImage.updatePixels();
 }
 
-function colorPixelsBelow(x, y, color) {
-  for (var pixel = y; pixel < windowHeight; pixel++) {
+function colorPixelsBelow(x, y, color, image) {
+  for (var pixel = y; pixel < image.height; pixel++) {
     if (pixel >= 0) {
-      colorPixel(x, pixel, color);
+      colorPixel(x, pixel, color, image);
     }
   }
 }
 
-function colorPixel(x, y, color) {
-  var index = (x + y * windowWidth) * 4;
-  mountainImage.pixels[index] = red(color);
-  mountainImage.pixels[index + 1] = green(color);
-  mountainImage.pixels[index + 2] = blue(color);
-  mountainImage.pixels[index + 3] = 255;
+function colorPixel(x, y, color, image) {
+  var index = (x + y * image.width) * 4;
+  image.pixels[index] = red(color);
+  image.pixels[index + 1] = green(color);
+  image.pixels[index + 2] = blue(color);
+  image.pixels[index + 3] = 255;
 }
