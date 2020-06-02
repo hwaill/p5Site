@@ -156,7 +156,7 @@ function createLeafImage() {
   for (var x = 0; x < 40; x++) {
     for (var y = 0; y < 40; y++) {
       if (sqrt(pow(20 - x, 2) + pow(20 - y, 2)) <= 20) {
-        colorPixel(x, y, color('#e1873e'), leafImage);
+        colorPixel(x, y, color(0, 0, 0), leafImage);
       }
     }
   }
